@@ -1,0 +1,14 @@
+{
+  "name": "chopra-nursing-home",
+  "version": "1.0.0",
+  "description": "chopra-nursing-home",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "satinder singh",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
