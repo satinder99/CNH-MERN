@@ -14,7 +14,7 @@ const counterNormalIncrement = async (req,res)=>{
         .json({
             "status" : 200,
             "message":"New Normal Counter created",
-            "value": newNormal?.value
+            "data": newNormal?.value
         })
     }
 
@@ -30,7 +30,7 @@ const counterNormalIncrement = async (req,res)=>{
         .json({
             "status" : 200,
             "message":"old normal count is updated",
-            "value": updatedNormalCounter?.value
+            "data": updatedNormalCounter?.value
         })
 }
 
@@ -42,7 +42,7 @@ const counterNormalDecrement = async (req,res)=>{
             .json({
                 "status" : 400,
                 "message": "Normal counter not found",
-                "value":""
+                "data":""
 
             })
     }
@@ -58,12 +58,37 @@ const counterNormalDecrement = async (req,res)=>{
         .json({
             "status":200,
             "message":"Old Normal count is updated",
-            "value" : updatedNormalCounter?.value
+            "data" : updatedNormalCounter?.value
         })
 
 }
 
+const getCounters = async(req,res)=>{
+    const normalCounter = await CounterModel.findOne(
+        {
+            name:"normal"
+        }
+    )
+
+    const emergencyCounter = await CounterModel.findOne(
+        {
+            name:"emergency"
+        }
+    )
+
+    return res
+        .status(200)
+        .json(
+            {
+                "status":"200",
+                "message":"Counter values fethed",
+                "data": {normalCounter,emergencyCounter}
+            }
+        )
+}
+
 export {
     counterNormalIncrement,
-    counterNormalDecrement
+    counterNormalDecrement,
+    getCounters
 }
