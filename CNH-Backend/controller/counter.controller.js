@@ -87,8 +87,75 @@ const getCounters = async(req,res)=>{
         )
 }
 
+const counterEmergencyIncrement = async (req,res)=>{
+    const emergencyCounter = await CounterModel.findOne({name:"emergency"});
+    if(!emergencyCounter){
+        console.log("creating new emergency count");
+        //create a new document and return
+        const newEmergency = await CounterModel.create({
+            name:"emergency",
+            value:0
+        })
+
+        return res
+        .status(200)
+        .json({
+            "status" : 200,
+            "message":"New Emergency Counter created",
+            "data": newEmergency?.value
+        })
+    }
+
+    //update existing value by 1
+    const updatedEmergencyCounter = await CounterModel.findOneAndUpdate(
+        {name:"emergency"},
+        {value:emergencyCounter.value+1},
+        {new:true}
+    )
+
+    return res
+        .status(200)
+        .json({
+            "status" : 200,
+            "message":"old emergency count is updated",
+            "data": updatedEmergencyCounter?.value
+        })
+}
+
+const counterEmergencyDecrement = async (req,res)=>{
+    const emergencyCounter = await CounterModel.findOne({name:"emergency"})
+    if(!emergencyCounter){
+        return res
+            .status(400)
+            .json({
+                "status" : 400,
+                "message": "Emergency counter not found",
+                "data":""
+
+            })
+    }
+
+    const updatedEmergencyCounter = await CounterModel.findOneAndUpdate(
+        {name:"emergency"},
+        {value:emergencyCounter.value-1},
+        {new:true}
+    )
+
+    return res
+        .status(200)
+        .json({
+            "status":200,
+            "message":"Old Emergency count is updated",
+            "data" : updatedEmergencyCounter?.value
+        })
+
+}
+
+
 export {
     counterNormalIncrement,
     counterNormalDecrement,
-    getCounters
+    getCounters,
+    counterEmergencyDecrement,
+    counterEmergencyIncrement
 }
