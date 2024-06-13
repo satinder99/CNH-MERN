@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react'
+import { socket } from '../socket';
 
 function UpdateCounter() {
     
   const [normalCounter,setNormalCounter] = useState(0);
   const [emergencyCounter,setEmergencyCounter] = useState(0);
+  
+  socket.on("updateCounters",(data)=>{
+    setNormalCounter(data.normal)
+    setEmergencyCounter(data.emergency)
+  })
 
   useEffect(()=>{
     fetch("http://localhost:3000/counter/getCounters")
@@ -48,8 +54,11 @@ function UpdateCounter() {
               if(result.status != "200"){
                 console.log("some error occured !!!")
               }
-              setNormalCounter(result.data);
-
+              //setNormalCounter(result.data);
+              socket.emit("incrementNormal",{
+                normal:result.data,
+                emergency:emergencyCounter
+              })
               console.log("new value : ",result.data)
             }
           )
@@ -70,7 +79,12 @@ function UpdateCounter() {
             if(result.status != "200"){
                 console.log("some error occured !!!")
             }
-            setEmergencyCounter(result.data);
+
+            //setEmergencyCounter(result.data);
+            socket.emit("incrementEmergency",{
+              normal:normalCounter,
+              emergency:result.data
+            })
         })
         .catch((err)=>{
             console.log("an error occured while fetching counters value",err);
@@ -96,8 +110,11 @@ const onDecrement = (e)=>{
               if(result.status != "200"){
                 console.log("some error occured !!!")
               }
-              setNormalCounter(result.data);
-
+              //setNormalCounter(result.data);
+              socket.emit("decrementNormal",{
+                normal:result.data,
+                emergency:emergencyCounter
+              })
               console.log("new value : ",result.data)
             }
           )
@@ -118,7 +135,11 @@ const onDecrement = (e)=>{
             if(result.status != "200"){
                 console.log("some error occured !!!")
             }
-            setEmergencyCounter(result.data);
+            //setEmergencyCounter(result.data);
+            socket.emit("decrementEmergency",{
+              normal:normalCounter,
+              emergency:result.data
+            })
         })
         .catch((err)=>{
             console.log("an error occured while fetching counters value",err);

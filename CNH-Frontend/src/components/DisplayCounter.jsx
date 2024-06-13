@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from 'react'
+import { socket } from '../socket';
 
 function displayCounter() {
   const [normalCounter,setNormalCounter] = useState(0);
   const [emergencyCounter,setEmergencyCounter] = useState(0);
+
+  socket.on("updateCounters",(data)=>{
+    setNormalCounter(data.normal)
+    setEmergencyCounter(data.emergency)
+  })
 
   useEffect(()=>{
     fetch("http://localhost:3000/counter/getCounters")
