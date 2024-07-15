@@ -1,16 +1,19 @@
 import express from "express";
 import { CounterModel } from "./Models/counter.model.js";
 import counterRouter from "./routes/counter.routes.js"
+import userRouter from "./routes/user.routes.js"
 import cors from "cors";
 import {Server} from "socket.io";
 import http from "http"
 
 const app = express();
 
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json())
 app.use(cors())
 
 app.use("/counter",counterRouter)
+app.use("/user",userRouter)
 
 /**
  * Socket io for events listening and updating counters in real time
