@@ -1,5 +1,5 @@
 // Filename - Form.js 
-
+import axios from "axios";
 import { useState } from "react"; 
 
 export default function Signup() { 
@@ -36,8 +36,24 @@ export default function Signup() {
 		if (name === "" || email === "" || password === "") { 
 			setError(true); 
 		} else { 
-			setSubmitted(true); 
-			setError(false); 
+			axios
+			.post("http://localhost:3000/user/create",{
+				fullName: name,
+				email,
+				password,
+			})
+			.then(response => {console.log(response) 
+				if(response.status == "201"){
+					setSubmitted(true); 
+					setError(false); 
+				}
+				if(response.status == "409"){
+					setSubmitted(false)
+				}
+			})
+			.catch(err=> {console.log("error occured while creating user :: ",err)
+				setSubmitted(false)
+			})
 		} 
 	}; 
 
