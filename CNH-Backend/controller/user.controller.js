@@ -1,9 +1,32 @@
-import { UserModel } from "../models/user.model.js";
+import { User } from "../models/user.model.js";
+
+const generateAccessAndRefreshTokens = async (userId)=>{
+    const user = await User.findById(userId)
+    console.log(userId)
+    if(!user){
+        return res
+            .status(401)
+            .json({
+                "status":401,
+                "message": "No user found",
+                "data":"Unauthorized"
+            })
+    }
+
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.refreshToken = refreshToken
+    user.save({validateBeforeSave : false})
+
+    return {accessToken,refreshToken}
+}
 
 const createUser = async (req,res)=>{
-    //console.log(req.body);
+    
+
     try{
-        const newUser = await UserModel.create({
+        const newUser = await User.create({
             email : req.body.email,
             fullName : req.body.fullName,
             password : req.body.password,
@@ -37,6 +60,61 @@ const createUser = async (req,res)=>{
     }
 }
 
+const loginUser = async(req,res)=>{
+
+    //find user in DB
+    //create refresh and access token
+
+    const {email,password} = req.body
+
+    if(!email && !password){
+        return res
+            .status(401)
+            .json({
+                "status":401,
+                "message": "email and password are required",
+                "data":"Unauthorized"
+            })
+    }
+
+    const user = await User.findOne({email:email});
+    if (!user){
+        return res
+            .status(401)
+            .json({
+                "status":401,
+                "message": "No user found for this email",
+                "data":"Unauthorized"
+            })
+    }
+    //console.log(password)
+    const isPasswordMatching =await user.isPasswordCorrect(password)
+    //console.log(isPasswordMatching)
+    if(!isPasswordMatching){
+        return res
+            .status(401)
+            .json({
+                "status":401,
+                "message": "Password or email is incorrect",
+                "data":"Unauthorized"
+            })
+    }
+    
+    const {accessToken, refreshToken} = generateAccessAndRefreshTokens(user.id);
+
+    //cookie
+    return res
+        .status(200)
+        .cookie("access-token",accessToken,{httpOnly : true, secure:true})
+        .cookie("refresh-token",refreshToken,{httpOnly:true, secure:true})
+        .json({
+            "status":200,
+            "message":"User logged in",
+            "data":user
+        })
+}
+
 export {
-    createUser
+    createUser,
+    loginUser
 }
