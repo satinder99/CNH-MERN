@@ -2,7 +2,6 @@ import { User } from "../models/user.model.js";
 
 const generateAccessAndRefreshTokens = async (userId)=>{
     const user = await User.findById(userId)
-    console.log(userId)
     if(!user){
         return res
             .status(401)
@@ -17,25 +16,59 @@ const generateAccessAndRefreshTokens = async (userId)=>{
     const refreshToken = user.generateRefreshToken();
 
     user.refreshToken = refreshToken
-    user.save({validateBeforeSave : false})
+    await user.save({validateBeforeSave : false})
 
     return {accessToken,refreshToken}
 }
 
 const createUser = async (req,res)=>{
     
+    let {email,fullName,password,responsibility} = req.body
+    email = email.trim()
+    fullName = fullName.trim(),
+    password = password.trim(),
+    responsibility = responsibility.trim()
+
+    console.dir( email + fullName+ password+ responsibility);
+
+    if(!email || !fullName || !password){
+        return res
+            .status(409)
+            .json({
+                "status":"409",
+                "message":"Email, Fullname and passwords are required",
+                "data":"Error"
+            })
+    }
 
     try{
+
+        const isUserExist = await User.findOne({email})
+        if(isUserExist){
+            return res
+                .status(409)
+                .json({
+                    "status":"409",
+                    "message":"Email already registered",
+                    "data":"Error"
+                })
+        }
+
         const newUser = await User.create({
-            email : req.body.email,
-            fullName : req.body.fullName,
-            password : req.body.password,
-            responsibility : req.body.responsibility || "normal"
+            email ,
+            fullName,
+            password,
+            responsibility : responsibility || "normal"
         })
 
         if(!newUser){
-            console.log("error occured while saving user to DB : ",req.body);
-            return null;
+            return res
+                .status(409)
+                .json({
+                    "status":"409",
+                    "message":"Error while saving user to DB",
+                    "data":"User : "+req.body
+                })
         }
         console.log("new user created : ",newUser);
         return res
@@ -62,12 +95,10 @@ const createUser = async (req,res)=>{
 
 const loginUser = async(req,res)=>{
 
-    //find user in DB
-    //create refresh and access token
-
-    const {email,password} = req.body
-
-    if(!email && !password){
+    let {email,password} = req.body
+    email = email.trim()
+    password = password.trim()
+    if(!email || !password){
         return res
             .status(401)
             .json({
@@ -87,9 +118,7 @@ const loginUser = async(req,res)=>{
                 "data":"Unauthorized"
             })
     }
-    //console.log(password)
     const isPasswordMatching =await user.isPasswordCorrect(password)
-    //console.log(isPasswordMatching)
     if(!isPasswordMatching){
         return res
             .status(401)
@@ -100,9 +129,10 @@ const loginUser = async(req,res)=>{
             })
     }
     
-    const {accessToken, refreshToken} = generateAccessAndRefreshTokens(user.id);
+    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user.id);
 
-    //cookie
+    console.log(accessToken,refreshToken)
+
     return res
         .status(200)
         .cookie("access-token",accessToken,{httpOnly : true, secure:true})
